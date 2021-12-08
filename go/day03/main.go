@@ -6,34 +6,6 @@ import (
 	"strconv"
 )
 
-//func evalA(lines []string) int {
-//	cntBits := len(lines[0])
-//	cntLines := float64(len(lines))
-//	var m = make(map[int]int)
-//	for _, line := range lines {
-//		for i, char := range line {
-//			bit, _ := strconv.Atoi(string(char))
-//			m[i] += bit
-//		}
-//	}
-//
-//	gamma := ""
-//	epsilon := ""
-//	for i := 0; i < cntBits; i++ {
-//		if float64(m[i])/cntLines > 0.5 {
-//			gamma += "1"
-//			epsilon += "0"
-//		} else {
-//			gamma += "0"
-//			epsilon += "1"
-//		}
-//	}
-//	gammaInt, _ := strconv.ParseInt(gamma, 2, 64)
-//	epsilonInt, _ := strconv.ParseInt(epsilon, 2, 64)
-//
-//	return int(gammaInt * epsilonInt)
-//}
-
 func getCommons(lines []string, pos int) (string, string) {
 	var zeros, ones int
 	for _, line := range lines {
@@ -80,7 +52,6 @@ func getCommonLines(lines []string, pos int, flagMostCommon bool) string {
 		if string(line[pos]) == leastCommon && !flagMostCommon {
 			commonLines = append(commonLines, line)
 		}
-
 	}
 
 	if len(commonLines) == 1 {
