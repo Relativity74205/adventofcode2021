@@ -23,7 +23,7 @@ func linesToDirections(lines []string) []Course {
 	return courses
 }
 
-func eval02A(courses []Course) int {
+func evalA(courses []Course) int {
 	var horizontal = 0
 	var depth = 0
 	for _, course := range courses {
@@ -40,7 +40,7 @@ func eval02A(courses []Course) int {
 	return horizontal * depth
 }
 
-func eval02B(courses []Course) int {
+func evalB(courses []Course) int {
 	var horizontal = 0
 	var depth = 0
 	var aim = 0
@@ -62,8 +62,8 @@ func eval02B(courses []Course) int {
 func main() {
 	lines := util.ReadFile("input02.txt")
 	courses := linesToDirections(lines)
-	resA := eval02A(courses)
-	resB := eval02B(courses)
-	fmt.Printf("Day02a: %v \n", resA)
-	fmt.Printf("Day02b: %v \n", resB)
+	resA := evalA(courses)
+	resB := evalB(courses)
+	fmt.Printf("A: %v \n", resA)
+	fmt.Printf("B: %v \n", resB)
 }

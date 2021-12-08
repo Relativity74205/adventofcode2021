@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func eval01A(lines []int) int {
+func evalA(lines []int) int {
 	var cnt = 0
 	for i := range lines {
 		if i == 0 {
@@ -19,7 +19,7 @@ func eval01A(lines []int) int {
 	return cnt
 }
 
-func eval01B(lines []int) int {
+func evalB(lines []int) int {
 	var cnt = 0
 	for i := range lines {
 		if i <= 2 {
@@ -36,8 +36,8 @@ func eval01B(lines []int) int {
 func main() {
 	lines := util.ReadFile("input01.txt")
 	linesInt := util.LinesToInt(lines)
-	resA := eval01A(linesInt)
-	resB := eval01B(linesInt)
-	fmt.Printf("Day01a: %v measurements\n", resA)
-	fmt.Printf("Day01b: %v measurements\n", resB)
+	resA := evalA(linesInt)
+	resB := evalB(linesInt)
+	fmt.Printf("A: %v \n", resA)
+	fmt.Printf("B: %v \n", resB)
 }
