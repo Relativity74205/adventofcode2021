@@ -7,173 +7,151 @@ import (
 	"strings"
 )
 
-type Position struct {
+type pos struct {
 	x int
 	y int
 }
 
-type Board struct {
-	numbers map[int]Position
-	tiles   [5][5]int
+type pipe struct {
+	start pos
+	end   pos
 }
 
-func allOnes(slice []int) bool {
-	for _, number := range slice {
-		if number == 0 {
-			return false
-		}
+func maxInt(int1, int2 int) int {
+	if int1 > int2 {
+		return int1
+	} else {
+		return int2
+	}
+}
+
+func minInt(int1, int2 int) int {
+	if int1 < int2 {
+		return int1
+	} else {
+		return int2
+	}
+}
+
+func absInt(int1, int2 int) int {
+	if int1 < int2 {
+		return int2 - int1
+	} else {
+		return int1 - int2
+	}
+}
+
+func createBoard(pipes []pipe) [][]int {
+	var size int
+	for _, pipe := range pipes {
+		size = maxInt(size, pipe.start.x)
+		size = maxInt(size, pipe.start.y)
+		size = maxInt(size, pipe.end.x)
+		size = maxInt(size, pipe.end.y)
 	}
 
-	return true
-}
-
-func getCol(matrix [5][5]int, colNumber int) []int {
-	var col []int
-	for _, v := range matrix[colNumber] {
-		col = append(col, v)
+	board := make([][]int, size+1)
+	for i := range board {
+		board[i] = make([]int, size+1)
 	}
 
-	return col
+	return board
 }
 
-func getRow(matrix [5][5]int, rowNumber int) []int {
-	var row []int
-	for _, col := range matrix {
-		row = append(row, col[rowNumber])
-	}
-
-	return row
-}
-
-func checkBoardFinished(board *Board) bool {
-	for x := 0; x <= 4; x++ {
-		if allOnes(getCol(board.tiles, x)) {
-			return true
-		}
-
-		if allOnes(getRow(board.tiles, x)) {
-			return true
-		}
-	}
-	return false
-}
-
-func evalBoard(board *Board) int {
-	var unmarked int
-	for number, pos := range board.numbers {
-		if board.tiles[pos.x][pos.y] == 0 {
-			unmarked += number
-		}
-	}
-
-	return unmarked
-}
-
-func evalA(boards []*Board, numbers []int) int {
-	for _, number := range numbers {
-		for _, board := range boards {
-			pos, ok := board.numbers[number]
-
-			if ok {
-				board.tiles[pos.x][pos.y] = 1
-			}
-		}
-
-		for _, board := range boards {
-			if checkBoardFinished(board) {
-				return number * evalBoard(board)
+func evalBoard(board [][]int) int {
+	var count int
+	for i := range board {
+		for j := range board[i] {
+			if board[i][j] >= 2 {
+				count += 1
 			}
 		}
 	}
-
-	return 0
+	return count
 }
 
-func evalB(boards []*Board, numbers []int) int {
-	for _, number := range numbers {
-		for _, board := range boards {
-			pos, ok := board.numbers[number]
-
-			if ok {
-				board.tiles[pos.x][pos.y] = 1
-			}
-		}
-
-		var newBoards []*Board
-		for _, board := range boards {
-			if checkBoardFinished(board) {
-				if len(boards) == 1 {
-					return number * evalBoard(board)
-				}
-			} else {
-				newBoards = append(newBoards, board)
-			}
-		}
-		boards = newBoards
-	}
-
-	return 0
-}
-
-func makeBoard(lines []string) *Board {
-	var numbers []int
-	for _, line := range lines {
-		numbersString := strings.Fields(line)
-		for _, numberString := range numbersString {
-			number, _ := strconv.Atoi(numberString)
-			numbers = append(numbers, number)
-		}
-	}
-
-	var tiles [5][5]int
-	numbersMap := make(map[int]Position)
-	for i, number := range numbers {
-		x := i - int(i/5.0)*5
-		y := i / 5.0
-		pos := Position{x, y}
-		numbersMap[number] = pos
-
-	}
-	return &Board{numbersMap, tiles}
-}
-
-func readBoards(lines []string) []*Board {
-	var boards []*Board
-
-	var boardLines []string
-	for _, line := range lines {
-		if line == "" {
-			boards = append(boards, makeBoard(boardLines))
-			boardLines = nil
+func evalA(pipes []pipe) int {
+	board := createBoard(pipes)
+	for _, pipe := range pipes {
+		if pipe.start.x != pipe.end.x && pipe.start.y != pipe.end.y {
 			continue
 		}
 
-		boardLines = append(boardLines, line)
+		if pipe.start.x != pipe.end.x {
+			start := minInt(pipe.start.x, pipe.end.x)
+			end := maxInt(pipe.start.x, pipe.end.x)
+			for i := start; i <= end; i++ {
+				board[i][pipe.start.y] += 1
+			}
+		}
+
+		if pipe.start.y != pipe.end.y {
+			start := minInt(pipe.start.y, pipe.end.y)
+			end := maxInt(pipe.start.y, pipe.end.y)
+			for i := start; i <= end; i++ {
+				board[pipe.start.x][i] += 1
+			}
+		}
+
 	}
 
-	boards = append(boards, makeBoard(boardLines))
-
-	return boards
+	return evalBoard(board)
 }
 
-func readNumbers(line string) []int {
-	numbersString := strings.Split(line, ",")
-	var numbers []int
-	for _, numberString := range numbersString {
-		number, _ := strconv.Atoi(numberString)
-		numbers = append(numbers, number)
+func evalB(pipes []pipe) int {
+	board := createBoard(pipes)
+	for _, pipe := range pipes {
+		var dx, dy int
+
+		if pipe.start.x > pipe.end.x {
+			dx = -1
+		}
+		if pipe.start.x < pipe.end.x {
+			dx = 1
+		}
+		if pipe.start.y > pipe.end.y {
+			dy = -1
+		}
+		if pipe.start.y < pipe.end.y {
+			dy = 1
+		}
+		steps := maxInt(absInt(pipe.end.x, pipe.start.x), absInt(pipe.end.y, pipe.start.y))
+		for i := 0; i <= steps; i++ {
+			x := pipe.start.x + dx*i
+			y := pipe.start.y + dy*i
+			board[x][y] += 1
+		}
+
 	}
 
-	return numbers
+	return evalBoard(board)
+}
+
+func createPos(posString string) pos {
+	coords := strings.Split(posString, ",")
+	x, _ := strconv.Atoi(coords[0])
+	y, _ := strconv.Atoi(coords[1])
+	return pos{x, y}
+}
+
+func createPipes(lines []string) []pipe {
+	var pipes []pipe
+	for _, line := range lines {
+		positions := strings.Split(line, " -> ")
+		start := createPos(positions[0])
+		end := createPos(positions[1])
+		pipes = append(pipes, pipe{start, end})
+	}
+
+	return pipes
 }
 
 func main() {
-	lines := util.ReadFile("input04.txt")
-	numbers := readNumbers(lines[0])
-	boards := readBoards(lines[2:])
+	lines := util.ReadFile("input05.txt")
+	pipes := createPipes(lines)
 
-	resA := evalA(boards, numbers)
-	resB := evalB(boards, numbers)
+	resA := evalA(pipes)
+	resB := evalB(pipes)
 	fmt.Printf("A: %v \n", resA)
 	fmt.Printf("B: %v \n", resB)
 }
