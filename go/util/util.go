@@ -75,3 +75,43 @@ func PrintIntegers(integers []int) {
 	}
 	fmt.Print("\n")
 }
+
+func MaxInt(int1, int2 int) int {
+	if int1 > int2 {
+		return int1
+	} else {
+		return int2
+	}
+}
+
+func MinInt(int1, int2 int) int {
+	if int1 < int2 {
+		return int1
+	} else {
+		return int2
+	}
+}
+
+func AbsInt(i int) int {
+	if i < 0 {
+		return -i
+	} else {
+		return i
+	}
+}
+
+func MaxIntegers(integers []int) int {
+	var max int
+	for _, i := range integers {
+		max = MaxInt(i, max)
+	}
+	return max
+}
+
+func MinIntegers(integers []int) int {
+	var min int
+	for _, i := range integers {
+		min = MinInt(i, min)
+	}
+	return min
+}

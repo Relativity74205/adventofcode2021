@@ -17,37 +17,11 @@ type pipe struct {
 	end   pos
 }
 
-func maxInt(int1, int2 int) int {
-	if int1 > int2 {
-		return int1
-	} else {
-		return int2
-	}
-}
-
-func minInt(int1, int2 int) int {
-	if int1 < int2 {
-		return int1
-	} else {
-		return int2
-	}
-}
-
-func absInt(i int) int {
-	if i < 0 {
-		return -i
-	} else {
-		return i
-	}
-}
-
 func createBoard(pipes []pipe) [][]int {
 	var size int
 	for _, pipe := range pipes {
-		size = maxInt(size, pipe.start.x)
-		size = maxInt(size, pipe.start.y)
-		size = maxInt(size, pipe.end.x)
-		size = maxInt(size, pipe.end.y)
+		integers := []int{size, pipe.start.x, pipe.start.y, pipe.end.x, pipe.end.y}
+		size = util.MaxIntegers(integers)
 	}
 
 	board := make([][]int, size+1)
@@ -78,16 +52,16 @@ func evalA(pipes []pipe) int {
 		}
 
 		if pipe.start.x != pipe.end.x {
-			start := minInt(pipe.start.x, pipe.end.x)
-			end := maxInt(pipe.start.x, pipe.end.x)
+			start := util.MinInt(pipe.start.x, pipe.end.x)
+			end := util.MaxInt(pipe.start.x, pipe.end.x)
 			for i := start; i <= end; i++ {
 				board[i][pipe.start.y] += 1
 			}
 		}
 
 		if pipe.start.y != pipe.end.y {
-			start := minInt(pipe.start.y, pipe.end.y)
-			end := maxInt(pipe.start.y, pipe.end.y)
+			start := util.MinInt(pipe.start.y, pipe.end.y)
+			end := util.MaxInt(pipe.start.y, pipe.end.y)
 			for i := start; i <= end; i++ {
 				board[pipe.start.x][i] += 1
 			}
@@ -115,7 +89,7 @@ func evalB(pipes []pipe) int {
 		if pipe.start.y < pipe.end.y {
 			dy = 1
 		}
-		steps := maxInt(absInt(pipe.end.x-pipe.start.x), absInt(pipe.end.y-pipe.start.y))
+		steps := util.MaxInt(util.AbsInt(pipe.end.x-pipe.start.x), util.AbsInt(pipe.end.y-pipe.start.y))
 		for i := 0; i <= steps; i++ {
 			x := pipe.start.x + dx*i
 			y := pipe.start.y + dy*i

@@ -7,30 +7,6 @@ import (
 	"strings"
 )
 
-//func nextDay(pop []int) []int {
-//	var nextPop []int
-//	for _, currentAge := range pop {
-//		if currentAge == 0 {
-//			nextPop = append(nextPop, 6)
-//			nextPop = append(nextPop, 8)
-//		} else {
-//			nextPop = append(nextPop, currentAge-1)
-//		}
-//	}
-//
-//	return nextPop
-//}
-//
-//func evalA(pop []int) int {
-//
-//	for day := 1; day <= 130; day++ {
-//		pop = nextDay(pop)
-//		fmt.Printf("day: %v pop: %v\n", day, len(pop))
-//	}
-//
-//	return len(pop)
-//}
-
 func nextDay(cohorts map[int]int) map[int]int {
 	nextCohorts := make(map[int]int)
 
