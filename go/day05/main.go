@@ -33,11 +33,11 @@ func minInt(int1, int2 int) int {
 	}
 }
 
-func absInt(int1, int2 int) int {
-	if int1 < int2 {
-		return int2 - int1
+func absInt(i int) int {
+	if i < 0 {
+		return -i
 	} else {
-		return int1 - int2
+		return i
 	}
 }
 
@@ -115,7 +115,7 @@ func evalB(pipes []pipe) int {
 		if pipe.start.y < pipe.end.y {
 			dy = 1
 		}
-		steps := maxInt(absInt(pipe.end.x, pipe.start.x), absInt(pipe.end.y, pipe.start.y))
+		steps := maxInt(absInt(pipe.end.x-pipe.start.x), absInt(pipe.end.y-pipe.start.y))
 		for i := 0; i <= steps; i++ {
 			x := pipe.start.x + dx*i
 			y := pipe.start.y + dy*i
