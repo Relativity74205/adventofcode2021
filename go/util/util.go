@@ -115,3 +115,20 @@ func MinIntegers(integers []int) int {
 	}
 	return min
 }
+
+func GetLastElementStrings(slice []string) string {
+	return slice[len(slice)-1]
+}
+
+func RemoveLastElementStrings(slice []string) []string {
+	return slice[:len(slice)-1]
+}
+
+func ReverseString(slice string) string {
+	var newSlice string
+	for i := len(slice) - 1; i >= 0; i-- {
+		newSlice += string([]rune(slice)[i])
+	}
+
+	return newSlice
+}

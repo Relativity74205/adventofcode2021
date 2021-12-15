@@ -3,9 +3,10 @@ package main
 import (
 	"aoc21_go/util"
 	"fmt"
+	"sort"
 )
 
-func findCorruption(line string) string {
+func analyzeLine(line string) string {
 	var openBrackets []string
 	for _, char := range line {
 		if checkOpenBracket(string(char)) {
@@ -13,26 +14,26 @@ func findCorruption(line string) string {
 		} else {
 			switch string(char) {
 			case ")":
-				if string(openBrackets[len(openBrackets)-1]) == "(" {
-					openBrackets = openBrackets[:len(openBrackets)-1]
+				if util.GetLastElementStrings(openBrackets) == "(" {
+					openBrackets = util.RemoveLastElementStrings(openBrackets)
 				} else {
 					return "("
 				}
 			case "]":
-				if string(openBrackets[len(openBrackets)-1]) == "[" {
-					openBrackets = openBrackets[:len(openBrackets)-1]
+				if util.GetLastElementStrings(openBrackets) == "[" {
+					openBrackets = util.RemoveLastElementStrings(openBrackets)
 				} else {
 					return "["
 				}
 			case "}":
-				if string(openBrackets[len(openBrackets)-1]) == "{" {
-					openBrackets = openBrackets[:len(openBrackets)-1]
+				if util.GetLastElementStrings(openBrackets) == "{" {
+					openBrackets = util.RemoveLastElementStrings(openBrackets)
 				} else {
 					return "{"
 				}
 			case ">":
-				if string(openBrackets[len(openBrackets)-1]) == "<" {
-					openBrackets = openBrackets[:len(openBrackets)-1]
+				if util.GetLastElementStrings(openBrackets) == "<" {
+					openBrackets = util.RemoveLastElementStrings(openBrackets)
 				} else {
 					return "<"
 				}
@@ -40,11 +41,16 @@ func findCorruption(line string) string {
 		}
 	}
 
-	return ""
+	var openBracketsString string
+	for _, openBracket := range openBrackets {
+		openBracketsString += openBracket
+	}
+
+	return openBracketsString
 }
 
-func calcSyntaxErrorScore(corruptedChar string) int {
-	switch corruptedChar {
+func calcSyntaxErrorScore(lineReport string) int {
+	switch lineReport {
 	case "(":
 		return 3
 	case "[":
@@ -68,15 +74,48 @@ func checkOpenBracket(char string) bool {
 func evalA(lines []string) int {
 	var sumSyntaxErrorScore int
 	for _, line := range lines {
-		corruptedChar := findCorruption(line)
-		sumSyntaxErrorScore += calcSyntaxErrorScore(corruptedChar)
+		lineReport := analyzeLine(line)
+		sumSyntaxErrorScore += calcSyntaxErrorScore(lineReport)
 	}
 
 	return sumSyntaxErrorScore
 }
 
+func calcAutoCompleteScore(lineReport string) int {
+	if checkOpenBracket(lineReport) {
+		return 0
+	}
+
+	var autoCompleteScore int
+	for _, char := range util.ReverseString(lineReport) {
+		autoCompleteScore *= 5
+		switch string(char) {
+		case "(":
+			autoCompleteScore += 1
+		case "[":
+			autoCompleteScore += 2
+		case "{":
+			autoCompleteScore += 3
+		case "<":
+			autoCompleteScore += 4
+		}
+	}
+
+	return autoCompleteScore
+}
+
 func evalB(lines []string) int {
-	return 0
+	var sumAutoCompleteScore []int
+	for _, line := range lines {
+		lineReport := analyzeLine(line)
+		autoCompleteScore := calcAutoCompleteScore(lineReport)
+		if autoCompleteScore != 0 {
+			sumAutoCompleteScore = append(sumAutoCompleteScore, autoCompleteScore)
+		}
+	}
+	sort.Ints(sumAutoCompleteScore)
+
+	return sumAutoCompleteScore[(len(sumAutoCompleteScore)-1)/2]
 }
 
 func main() {
