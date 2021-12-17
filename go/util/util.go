@@ -124,6 +124,20 @@ func RemoveLastElementStrings(slice []string) []string {
 	return slice[:len(slice)-1]
 }
 
+func GetMatrixFromLines(lines []string) [][]int {
+	var matrix [][]int
+	for _, line := range lines {
+		var xLine []int
+		for _, char := range line {
+			val, _ := strconv.Atoi(string(char))
+			xLine = append(xLine, val)
+		}
+		matrix = append(matrix, xLine)
+	}
+
+	return matrix
+}
+
 func ReverseString(slice string) string {
 	var newSlice string
 	for i := len(slice) - 1; i >= 0; i-- {
