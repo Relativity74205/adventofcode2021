@@ -119,10 +119,13 @@ func evalB(lines []string) int {
 }
 
 func main() {
-	lines := util.ReadFile("input10.txt")
+	day := 10
+	filename := fmt.Sprintf("input%02d.txt", day)
+	lines := util.ReadFile(filename)
 
 	resA := evalA(lines)
 	resB := evalB(lines)
+	fmt.Printf("Day %02d \n", day)
 	fmt.Printf("A: %v \n", resA)
 	fmt.Printf("B: %v \n", resB)
 }
