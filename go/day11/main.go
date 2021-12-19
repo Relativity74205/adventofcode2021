@@ -57,7 +57,7 @@ func processRound(board Board) (Board, int) {
 		}
 	}
 
-	newBoard := board
+	newBoard := Board{util.CopyMatrix(board.energy), board.width, board.height}
 	for len(increaseList) > 0 {
 		pos := increaseList[0]
 		increaseList = increaseList[1:]
@@ -67,7 +67,10 @@ func processRound(board Board) (Board, int) {
 			increaseList = append(increaseList, getNeighbors(pos, flashList, newBoard.width, newBoard.height)...)
 			newBoard.energy[pos.x][pos.y] = 0
 		} else {
-			newBoard.energy[pos.x][pos.y] += 1
+			_, inFlashList := flashList[pos]
+			if !inFlashList {
+				newBoard.energy[pos.x][pos.y] += 1
+			}
 		}
 	}
 
@@ -80,16 +83,25 @@ func evalA(board Board) int {
 
 	for i := 0; i < maxRounds; i++ {
 		newBoard, newFlashes := processRound(board)
-		countFlashes += newFlashes
 		board = newBoard
+		countFlashes += newFlashes
 	}
 
 	return countFlashes
 }
 
 func evalB(board Board) int {
+	var round int
+	maxPossibleFlashes := board.width * board.height
 
-	return 0
+	for {
+		round++
+		newBoard, newFlashes := processRound(board)
+		if newFlashes == maxPossibleFlashes {
+			return round
+		}
+		board = newBoard
+	}
 }
 
 func createBoard(startEnergy [][]int) Board {
@@ -97,7 +109,7 @@ func createBoard(startEnergy [][]int) Board {
 }
 
 func main() {
-	lines := util.ReadFile("input11_debug.txt")
+	lines := util.ReadFile("input11.txt")
 	startEnergy := util.GetMatrixFromLines(lines)
 	energyBoard := createBoard(startEnergy)
 

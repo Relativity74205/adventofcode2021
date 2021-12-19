@@ -146,3 +146,26 @@ func ReverseString(slice string) string {
 
 	return newSlice
 }
+
+func CopyMatrix(matrix [][]int) [][]int {
+	var matrixCopy [][]int
+	for _, line := range matrix {
+		var lineCopy []int
+		for _, val := range line {
+			lineCopy = append(lineCopy, val)
+		}
+		matrixCopy = append(matrixCopy, lineCopy)
+	}
+
+	return matrixCopy
+}
+
+func PrintMatrix(matrix [][]int) {
+	for _, line := range matrix {
+		for _, val := range line {
+			print(val)
+		}
+		println("")
+	}
+	println("\n")
+}
