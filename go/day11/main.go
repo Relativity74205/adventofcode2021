@@ -109,12 +109,15 @@ func createBoard(startEnergy [][]int) Board {
 }
 
 func main() {
-	lines := util.ReadFile("input11.txt")
+	day := 11
+	filename := fmt.Sprintf("input%02d.txt", day)
+	lines := util.ReadFile(filename)
 	startEnergy := util.GetMatrixFromLines(lines)
 	energyBoard := createBoard(startEnergy)
 
 	resA := evalA(energyBoard)
 	resB := evalB(energyBoard)
+	fmt.Printf("Day %02d \n", day)
 	fmt.Printf("A: %v \n", resA)
 	fmt.Printf("B: %v \n", resB)
 }
