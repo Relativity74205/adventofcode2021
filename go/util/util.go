@@ -169,3 +169,22 @@ func PrintMatrix(matrix [][]int) {
 	}
 	println("\n")
 }
+
+func InSliceString(slice []string, item string) bool {
+	for _, ele := range slice {
+		if ele == item {
+			return true
+		}
+	}
+
+	return false
+}
+
+func CopyStringSlice(slice []string) []string {
+	var newSlice []string
+	for _, ele := range slice {
+		newSlice = append(newSlice, ele)
+	}
+
+	return newSlice
+}
