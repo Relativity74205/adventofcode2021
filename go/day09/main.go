@@ -19,35 +19,24 @@ type Coords struct {
 	y int
 }
 
-func checkInBounds(heightMap [][]int, x, y int) bool {
-	maxHeight := len(heightMap) - 1
-	maxWidth := len(heightMap[0]) - 1
-
-	if x < 0 || y < 0 || x > maxWidth || y > maxHeight {
-		return false
-	}
-
-	return true
-}
-
 func checkLowPoint(heightMap [][]int, x, y int) bool {
-	if checkInBounds(heightMap, x-1, y) && heightMap[y][x-1] <= heightMap[y][x] {
+	if util.CheckInBounds(heightMap, x-1, y) && heightMap[y][x-1] <= heightMap[y][x] {
 		return false
 	}
-	if checkInBounds(heightMap, x+1, y) && heightMap[y][x+1] <= heightMap[y][x] {
+	if util.CheckInBounds(heightMap, x+1, y) && heightMap[y][x+1] <= heightMap[y][x] {
 		return false
 	}
-	if checkInBounds(heightMap, x, y-1) && heightMap[y-1][x] <= heightMap[y][x] {
+	if util.CheckInBounds(heightMap, x, y-1) && heightMap[y-1][x] <= heightMap[y][x] {
 		return false
 	}
-	if checkInBounds(heightMap, x, y+1) && heightMap[y+1][x] <= heightMap[y][x] {
+	if util.CheckInBounds(heightMap, x, y+1) && heightMap[y+1][x] <= heightMap[y][x] {
 		return false
 	}
 	return true
 }
 
 func checkPartOfBasin(heightMap [][]int, x, y int) bool {
-	if checkInBounds(heightMap, x, y) && heightMap[y][x] < 9 {
+	if util.CheckInBounds(heightMap, x, y) && heightMap[y][x] < 9 {
 		return true
 	}
 	return false

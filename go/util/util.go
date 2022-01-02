@@ -188,3 +188,14 @@ func CopyStringSlice(slice []string) []string {
 
 	return newSlice
 }
+
+func CheckInBounds(mapArray [][]int, x, y int) bool {
+	maxHeight := len(mapArray) - 1
+	maxWidth := len(mapArray[0]) - 1
+
+	if x < 0 || y < 0 || x > maxWidth || y > maxHeight {
+		return false
+	}
+
+	return true
+}
