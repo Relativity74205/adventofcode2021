@@ -189,6 +189,16 @@ func CopyStringSlice(slice []string) []string {
 	return newSlice
 }
 
+func GetBlankLine(lines []string) int {
+	for i, line := range lines {
+		if line == "" {
+			return i
+		}
+
+	}
+	return len(lines)
+}
+
 func CheckInBounds(mapArray [][]int, x, y int) bool {
 	maxHeight := len(mapArray) - 1
 	maxWidth := len(mapArray[0]) - 1
