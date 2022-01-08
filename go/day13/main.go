@@ -68,16 +68,6 @@ func evalB(paper [][]bool, instructions []Instruction) [][]bool {
 	return paper
 }
 
-func getBlankLine(lines []string) int {
-	for i, line := range lines {
-		if line == "" {
-			return i
-		}
-
-	}
-	return len(lines)
-}
-
 func getCoords(line string) (int, int) {
 	coords := strings.Split(line, ",")
 	x, _ := strconv.Atoi(coords[0])
@@ -98,7 +88,7 @@ func getSize(instructions []string) (int, int) {
 }
 
 func createPaper(lines []string) [][]bool {
-	blankLineIndex := getBlankLine(lines)
+	blankLineIndex := util.GetBlankLine(lines)
 	coordStrings := lines[:blankLineIndex]
 
 	sizeX, sizeY := getSize(coordStrings)
@@ -123,8 +113,8 @@ type Instruction struct {
 
 func createInstructions(lines []string) []Instruction {
 	var instructions []Instruction
-	blankLineIndex := getBlankLine(lines)
-	instructionStrings := lines[blankLineIndex+1 : len(lines)]
+	blankLineIndex := util.GetBlankLine(lines)
+	instructionStrings := lines[blankLineIndex+1:]
 	for _, instructionString := range instructionStrings {
 		instructionParts := strings.Split(instructionString, "=")
 		axis := string(instructionParts[0][len(instructionParts[0])-1])
