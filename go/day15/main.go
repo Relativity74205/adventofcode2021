@@ -13,6 +13,36 @@ var neighborDeltas = []Pos{
 	{1, 0},
 }
 
+type PriorityQueue []*Path
+
+func (pq PriorityQueue) Len() int { return len(pq) }
+
+func (pq PriorityQueue) Less(i, j int) bool {
+	// We want Pop to give us the lowest based on expiration number as the priority
+	// The lower the expiry, the higher the priority
+	return pq[i].riskLevel < pq[j].riskLevel
+}
+
+// We just implement the pre-defined function in interface of heap.
+
+func (pq *PriorityQueue) Pop() interface{} {
+	old := *pq
+	n := len(old)
+	item := old[n-1]
+	*pq = old[0 : n-1]
+	return item
+}
+
+func (pq *PriorityQueue) Push(x interface{}) {
+	n := len(*pq)
+	item := x.(*Path)
+	*pq = append(*pq, item)
+}
+
+func (pq PriorityQueue) Swap(i, j int) {
+	pq[i], pq[j] = pq[j], pq[i]
+}
+
 type Pos struct {
 	x int
 	y int
@@ -22,6 +52,11 @@ type Map struct {
 	riskLevels [][]int
 	width      int
 	height     int
+}
+
+type Path struct {
+	visitedPos []Pos
+	riskLevel  int
 }
 
 func getNewPositions(caveMap [][]int, x, y int) []Pos {
@@ -36,8 +71,14 @@ func getNewPositions(caveMap [][]int, x, y int) []Pos {
 }
 
 func evalA(caveMap [][]int) int {
-	posStart := Pos{0, 0}
-	for _, newPosition := range getNewPositions(caveMap, posStart.x, posStart.y) {
+	cumRisk := make([][]int, len(caveMap))
+	for y := range cumRisk {
+		cumRisk[y] = make([]int, len(caveMap[0]))
+	}
+
+	startPath := Path{[]Pos{{0, 0}}, 0}
+	fooQueue := []Path{startPath}
+	for len(fooQueue) > 0 {
 
 	}
 	pathsStart
