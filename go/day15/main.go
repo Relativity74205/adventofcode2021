@@ -2,6 +2,7 @@ package main
 
 import (
 	"aoc21_go/util"
+	"container/heap"
 	"fmt"
 	"strconv"
 )
@@ -13,17 +14,13 @@ var neighborDeltas = []Pos{
 	{1, 0},
 }
 
-type PriorityQueue []*Path
+type PriorityQueue []Path
 
 func (pq PriorityQueue) Len() int { return len(pq) }
 
 func (pq PriorityQueue) Less(i, j int) bool {
-	// We want Pop to give us the lowest based on expiration number as the priority
-	// The lower the expiry, the higher the priority
 	return pq[i].riskLevel < pq[j].riskLevel
 }
-
-// We just implement the pre-defined function in interface of heap.
 
 func (pq *PriorityQueue) Pop() interface{} {
 	old := *pq
@@ -34,9 +31,7 @@ func (pq *PriorityQueue) Pop() interface{} {
 }
 
 func (pq *PriorityQueue) Push(x interface{}) {
-	n := len(*pq)
-	item := x.(*Path)
-	*pq = append(*pq, item)
+	*pq = append(*pq, x.(Path))
 }
 
 func (pq PriorityQueue) Swap(i, j int) {
@@ -48,47 +43,102 @@ type Pos struct {
 	y int
 }
 
-type Map struct {
-	riskLevels [][]int
-	width      int
-	height     int
-}
-
 type Path struct {
-	visitedPos []Pos
-	riskLevel  int
+	lastPos   Pos
+	path      []Pos
+	riskLevel int
 }
 
-func getNewPositions(caveMap [][]int, x, y int) []Pos {
-	var newPositions []Pos
+func getNewPaths(caveMap [][]int, path Path) []Path {
+	var newPaths []Path
+
 	for _, delta := range neighborDeltas {
-		if util.CheckInBounds(caveMap, x+delta.x, y+delta.y) {
-			newPositions = append(newPositions, Pos{x + delta.x, y + delta.y})
+		newPos := Pos{path.lastPos.x + delta.x, path.lastPos.y + delta.y}
+
+		if util.CheckInBounds(caveMap, newPos.x, newPos.y) {
+			newPath := Path{
+				newPos,
+				append(path.path, newPos),
+				path.riskLevel + caveMap[newPos.y][newPos.x],
+			}
+			newPaths = append(newPaths, newPath)
 		}
 	}
 
-	return newPositions
+	return newPaths
+}
+
+func findPath(caveMap [][]int) int {
+	endX := len(caveMap) - 1
+	endY := len(caveMap[0]) - 1
+	startPos := Pos{0, 0}
+
+	h := &PriorityQueue{}
+	heap.Init(h)
+	heap.Push(h, Path{startPos, []Pos{startPos}, 0})
+	visitedPos := make(map[Pos]bool)
+	toVisitPos := make(map[Pos]int)
+	toVisitPos[startPos] = 0
+
+	for h.Len() > 0 {
+		path := heap.Pop(h).(Path)
+		if path.lastPos.x == endX && path.lastPos.y == endY {
+			return path.riskLevel
+		}
+
+		visitedPos[path.lastPos] = true
+
+		newPaths := getNewPaths(caveMap, path)
+		for _, newPath := range newPaths {
+			_, alreadyVisited := visitedPos[newPath.lastPos]
+			oldRiskLevel, onVisitPos := toVisitPos[newPath.lastPos]
+			if alreadyVisited {
+				continue
+			}
+			if onVisitPos && newPath.riskLevel >= oldRiskLevel {
+				continue
+			}
+			toVisitPos[newPath.lastPos] = newPath.riskLevel
+			heap.Push(h, newPath)
+		}
+	}
+
+	return -1
 }
 
 func evalA(caveMap [][]int) int {
-	cumRisk := make([][]int, len(caveMap))
-	for y := range cumRisk {
-		cumRisk[y] = make([]int, len(caveMap[0]))
-	}
-
-	startPath := Path{[]Pos{{0, 0}}, 0}
-	fooQueue := []Path{startPath}
-	for len(fooQueue) > 0 {
-
-	}
-	pathsStart
-
-	return 0
+	return findPath(caveMap)
 }
 
-func evalB(lines []string) int {
+func evalB(caveMap [][]int) int {
+	unfoldedCaveMap := unfoldMap(caveMap)
+	return findPath(unfoldedCaveMap)
+}
 
-	return 0
+func unfoldMap(caveMap [][]int) [][]int {
+	orgSizeX := len(caveMap)
+	orgSizeY := len(caveMap[0])
+	unfoldedMap := make([][]int, orgSizeY*5)
+	for y := 0; y < orgSizeY*5; y++ {
+		unfoldedMap[y] = make([]int, orgSizeX*5)
+	}
+	foldFactor := 5
+
+	for x := 0; x < orgSizeX; x++ {
+		for y := 0; y < orgSizeY; y++ {
+			for dx := 0; dx < foldFactor; dx++ {
+				for dy := 0; dy < foldFactor; dy++ {
+					newRiskLevel := caveMap[y][x] + dx + dy
+					if newRiskLevel > 9 {
+						newRiskLevel -= 9
+					}
+					unfoldedMap[y+dy*orgSizeY][x+dx*orgSizeX] = newRiskLevel
+				}
+			}
+		}
+	}
+
+	return unfoldedMap
 }
 
 func buildMap(lines []string) [][]int {
@@ -105,16 +155,29 @@ func buildMap(lines []string) [][]int {
 	return caveMap
 }
 
-func main() {
-	day := 15
-	debugSuffix := ""
-	filename := fmt.Sprintf("input%02d%v.txt", day, debugSuffix)
+func eval(filename string, day int, debug bool) {
 	lines := util.ReadFile(filename)
 	caveMap := buildMap(lines)
 
 	resA := evalA(caveMap)
-	resB := evalB(lines)
+	resB := evalB(caveMap)
+	if debug {
+		fmt.Printf("A (debug): %v \n", resA)
+		fmt.Printf("B (debug): %v \n", resB)
+	} else {
+		fmt.Printf("A: %v \n", resA)
+		fmt.Printf("B: %v \n", resB)
+	}
+
+}
+
+func main() {
+	day := 15
+	debugSuffix := "_debug"
+	filename := fmt.Sprintf("input%02d.txt", day)
+	filenameDebug := fmt.Sprintf("input%02d%v.txt", day, debugSuffix)
+
 	fmt.Printf("Day %02d \n", day)
-	fmt.Printf("A: %v \n", resA)
-	fmt.Printf("B: %v \n", resB)
+	eval(filenameDebug, day, true)
+	eval(filename, day, false)
 }
