@@ -155,7 +155,7 @@ func buildMap(lines []string) [][]int {
 	return caveMap
 }
 
-func eval(filename string, day int, debug bool) {
+func eval(filename string, debug bool) {
 	lines := util.ReadFile(filename)
 	caveMap := buildMap(lines)
 
@@ -178,6 +178,6 @@ func main() {
 	filenameDebug := fmt.Sprintf("input%02d%v.txt", day, debugSuffix)
 
 	fmt.Printf("Day %02d \n", day)
-	eval(filenameDebug, day, true)
-	eval(filename, day, false)
+	eval(filenameDebug, true)
+	eval(filename, false)
 }
