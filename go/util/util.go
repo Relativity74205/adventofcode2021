@@ -109,7 +109,7 @@ func MaxIntegers(integers []int) int {
 }
 
 func MinIntegers(integers []int) int {
-	var min int
+	min := 9223372036854775807
 	for _, i := range integers {
 		min = MinInt(i, min)
 	}
