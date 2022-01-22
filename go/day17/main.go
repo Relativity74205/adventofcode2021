@@ -46,16 +46,12 @@ func getStartVelocity(l int) int {
 	}
 }
 
-func evalA(area targetArea) int {
-
-	probe := Probe{0, 0, 6, 9, 0, false}
+func simulate(vx, vy int, area targetArea) int {
+	probe := Probe{0, 0, vx, vy, 0, false}
 	for probe.y >= area.yMin {
 		probe.x += probe.vx
 		probe.y += probe.vy
-		probe.vx -= 1
-		if probe.vx < 0 {
-			probe.vx = 0
-		}
+		probe.vx = util.MaxInt(probe.vx-1, 0)
 		probe.vy -= 1
 		probe.yMax = util.MaxInt(probe.yMax, probe.y)
 		if inTargetArea(probe, area) {
@@ -67,12 +63,36 @@ func evalA(area targetArea) int {
 	} else {
 		return -1
 	}
+}
 
+func evalA(area targetArea) int {
+	var yMax int
+
+	for vy := 0; vy <= 100; vy++ {
+		for l := area.xMin; l <= area.xMax; l++ {
+			vx := getStartVelocity(l)
+			if vx == -1 {
+				continue
+			}
+			yMax = util.MaxInt(simulate(vx, vy, area), yMax)
+		}
+	}
+
+	return yMax
 }
 
 func evalB(area targetArea) int {
+	var count int
 
-	return 0
+	for vy := area.yMin; vy <= 100; vy++ {
+		for vx := 0; vx <= area.xMax; vx++ {
+			if simulate(vx, vy, area) != -1 {
+				count++
+			}
+		}
+	}
+
+	return count
 }
 
 func getTargetArea(line string) targetArea {
