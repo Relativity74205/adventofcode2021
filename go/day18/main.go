@@ -3,27 +3,28 @@ package main
 import (
 	"aoc21_go/util"
 	"fmt"
+	"math"
 	"strconv"
 )
 
-type sfnNode struct {
-	pair   bool
+type Node struct {
+	isPair bool
 	value  int
-	left   *sfnNode
-	right  *sfnNode
-	parent *sfnNode
+	left   *Node
+	right  *Node
+	parent *Node
 }
 
-func (node sfnNode) magnitude() int {
-	if node.pair {
-		return calcMagnitudePair(node)
+func (node Node) magnitude() int {
+	if node.isPair {
+		return 3*node.left.magnitude() + 2*node.right.magnitude()
 	} else {
 		return node.value
 	}
 }
 
-func (node sfnNode) level() int {
-	if node.pair {
+func (node Node) level() int {
+	if node.isPair {
 		if node.parent == nil {
 			return 1
 		}
@@ -34,38 +35,32 @@ func (node sfnNode) level() int {
 	}
 }
 
-func calcMagnitudePair(node sfnNode) int {
+func createNode(nodeString string) *Node {
+	var node *Node
+	value, isNumber := strconv.Atoi(nodeString)
+	if isNumber == nil {
+		node = &Node{false, value, nil, nil, nil}
+	} else {
+		node = createSFN(nodeString, nil)
+	}
 
-	return 3*node.left.magnitude() + 2*node.right.magnitude()
+	return node
 }
 
-func createRegular(value int, parent *sfnNode) *sfnNode {
-	return &sfnNode{false, value, nil, nil, parent}
-}
-
-func createSfnPair(line string, parent *sfnNode) *sfnNode {
-	var leftNode, rightNode *sfnNode
-	newPair := &sfnNode{true, -1, nil, nil, parent}
-
+func createSFN(line string, parent *Node) *Node {
 	middleIndex := findMiddleIndex(line)
 	leftPart := line[1:middleIndex]
 	rightPart := line[middleIndex+1 : len(line)-1]
 
-	leftNumber, isLeftNumber := strconv.Atoi(leftPart)
-	if isLeftNumber == nil {
-		leftNode = createRegular(leftNumber, newPair)
-	} else {
-		leftNode = createSfnPair(leftPart, newPair)
+	newPair := &Node{
+		true,
+		-1,
+		createNode(leftPart),
+		createNode(rightPart),
+		parent,
 	}
-	newPair.left = leftNode
-
-	rightNumber, isRightNumber := strconv.Atoi(rightPart)
-	if isRightNumber == nil {
-		rightNode = createRegular(rightNumber, newPair)
-	} else {
-		rightNode = createSfnPair(rightPart, newPair)
-	}
-	newPair.right = rightNode
+	newPair.left.parent = newPair
+	newPair.right.parent = newPair
 
 	return newPair
 }
@@ -91,95 +86,121 @@ func findMiddleIndex(line string) int {
 	return middleIndex
 }
 
-func debugMagnitude() {
-	var outcome string
-	testCases := map[string]int{
-		"[[1,2],[[3,4],5]]":                                     143,
-		"[[[[0,7],4],[[7,8],[6,0]]],[8,1]]":                     1384,
-		"[[[[1,1],[2,2]],[3,3]],[4,4]]":                         445,
-		"[[[[3,0],[5,3]],[4,4]],[5,5]]":                         791,
-		"[[[[5,0],[7,4]],[5,5]],[6,6]]":                         1137,
-		"[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]": 3488,
-	}
+func serializeSFN(node *Node) string {
+	return serializeSFNRec(node, "")
+}
 
-	for input, expected := range testCases {
-		sfnNode := createSfnPair(input, nil)
-		println(sfnNode.level())
-		actual := calcMagnitudePair(*sfnNode)
-
-		if actual == expected {
-			outcome = "passed"
-		} else {
-			outcome = "FAILED"
-		}
-		fmt.Printf("Magnitude debug: outcome: %s; expected: %d, actual: %d, input: %s \n", outcome, expected, actual, input)
+func serializeSFNRec(node *Node, s string) string {
+	if node.isPair {
+		var sNew string
+		sNew += "["
+		sNew = serializeSFNRec(node.left, sNew)
+		sNew += ","
+		sNew = serializeSFNRec(node.right, sNew)
+		sNew += "]"
+		return s + sNew
+	} else {
+		return s + strconv.Itoa(node.value)
 	}
 }
 
-//
-//func addition(pair1, pair2 sfnPair) sfnPair {
-//	newPair := sfnPair{nil, nil, nil}
-//	pair1.parent = &newPair
-//	pair2.parent = &newPair
-//	newPair.left = pair1
-//	newPair.right = pair2
-//
-//	return newPair
-//}
-//
-//func explode(pair *sfnPair) *sfnPair {
-//	return pair
-//}
-//
-//func split(regular sfnRegular) sfnPair {
-//	newPair := sfnPair{nil, nil, regular.parent}
-//	newPair.left = createRegular(int(math.Floor(float64(regular.magnitude())/2.0)), &newPair)
-//	newPair.right = createRegular(int(math.Ceil(float64(regular.magnitude())/2.0)), &newPair)
-//
-//	return newPair
-//}
-//
-//func traverse(pair *sfnPair) bool {
-//	if foo(pair.left, pair) == false {
-//		return false
-//	}
-//	if foo(pair.right, pair) == false {
-//		return false
-//	}
-//
-//	return true
-//}
-//
-//func foo(node sfnNode, pair *sfnPair) bool {
-//	switch t := node.(type) {
-//	case sfnPair:
-//		if t.level() >= 5 {
-//			explode(pair)
-//			return false
-//		} else {
-//			return traverse(pair)
-//		}
-//	case sfnRegular:
-//		if t.magnitude() >= 10 {
-//			node = split(node.(sfnRegular))
-//			return false
-//		}
-//	default:
-//	}
-//
-//	return true
-//}
-//
-//func reduce(pair sfnPair) {
-//	foo := false
-//	for foo == false {
-//		foo = traverse(&pair)
-//	}
-//}
+func addition(pair1, pair2 *Node) *Node {
+	newPair := &Node{true, -1, pair1, pair2, nil}
+	newPair.left.parent = newPair
+	newPair.right.parent = newPair
+
+	return newPair
+}
+
+func getNodeList(node *Node, nodeList []*Node) []*Node {
+	nodeList = append(nodeList, node)
+	if node.isPair {
+		nodeList = getNodeList(node.left, nodeList)
+		nodeList = getNodeList(node.right, nodeList)
+	}
+	return nodeList
+}
+
+func split(nodeList []*Node, splitIndex int) {
+	node := nodeList[splitIndex]
+	newNode := &Node{
+		true,
+		-1,
+		&Node{false, int(math.Floor(float64(node.magnitude()) / 2.0)), nil, nil, nil},
+		&Node{false, int(math.Ceil(float64(node.magnitude()) / 2.0)), nil, nil, nil},
+		node.parent,
+	}
+	newNode.left.parent = newNode
+	newNode.right.parent = newNode
+
+	if node.parent.left == node {
+		node.parent.left = newNode
+	} else {
+		node.parent.right = newNode
+	}
+}
+
+func explode(nodeList []*Node, explodeIndex int) {
+	node := nodeList[explodeIndex]
+
+	valLeft := node.left.value
+	valRight := node.right.value
+	newNode := &Node{false, 0, nil, nil, node.parent}
+	if node.parent.left == node {
+		node.parent.left = newNode
+	} else {
+		node.parent.right = newNode
+	}
+
+	for i := explodeIndex - 1; i >= 0; i-- {
+		if !nodeList[i].isPair {
+			nodeList[i].value += valLeft
+			break
+		}
+	}
+	for i := explodeIndex + 3; i <= len(nodeList)-1; i++ {
+		if !nodeList[i].isPair {
+			nodeList[i].value += valRight
+			break
+		}
+	}
+}
+
+func traverse(nodeList []*Node) bool {
+	for i, node := range nodeList {
+		if node.isPair && node.level() > 4 {
+			explode(nodeList, i)
+			return false
+		}
+		if !node.isPair && node.magnitude() >= 10 {
+			split(nodeList, i)
+			return false
+		}
+	}
+
+	return true
+}
+
+func traverseOnce(sfn *Node) bool {
+	nodeList := getNodeList(sfn, nil)
+	return traverse(nodeList)
+}
+
+func reduce(sfn *Node) {
+	for !traverseOnce(sfn) {
+	}
+}
 
 func evalA(lines []string) int {
+	sfn := createSFN(lines[0], nil)
+	for _, line := range lines[1:] {
+		newSFN := createSFN(line, nil)
+		sfn = addition(sfn, newSFN)
+		reduce(sfn)
+	}
+	println(serializeSFN(sfn))
 
-	return 0
+	return sfn.magnitude()
 }
 
 func evalB(lines []string) int {
@@ -206,14 +227,14 @@ func main() {
 	day := 18
 	filename := fmt.Sprintf("input%02d.txt", day)
 	filenameDebug1 := fmt.Sprintf("input%02d%v.txt", day, "_debug1")
+	println(filenameDebug1)
 	filenameDebug2 := fmt.Sprintf("input%02d%v.txt", day, "_debug2")
 
 	fmt.Printf("Day %02d \n", day)
-	debugMagnitude()
+	//debugMagnitude()
+	//debugExplode()
+	debugAdd()
 	eval(filenameDebug1, true)
 	eval(filenameDebug2, true)
 	eval(filename, false)
-	//test := addition(createSfnPair("[1,2]", nil), createSfnPair("[[1,2],3]", nil))
-	//fmt.Printf("1. main  -- i  %T: &i=%p i=%v\n", test, &test, test)
-	//println(calcMagnitudePair(test))
 }
