@@ -6,36 +6,46 @@ import (
 	"strconv"
 )
 
-type sfnNode interface {
-	magnitude() int
+type sfnNode struct {
+	pair   bool
+	value  int
+	left   *sfnNode
+	right  *sfnNode
+	parent *sfnNode
 }
 
-type sfnPair struct {
-	left   sfnNode
-	right  sfnNode
-	parent *sfnPair
-}
-
-type regular int
-
-func (o sfnPair) magnitude() int { return calcMagnitudePair(o) }
-func (o regular) magnitude() int { return int(o) }
-func (o sfnPair) level() int {
-	if o.parent == nil {
-		return 1
+func (node sfnNode) magnitude() int {
+	if node.pair {
+		return calcMagnitudePair(node)
+	} else {
+		return node.value
 	}
-
-	return o.parent.level() + 1
 }
 
-func calcMagnitudePair(pair sfnPair) int {
+func (node sfnNode) level() int {
+	if node.pair {
+		if node.parent == nil {
+			return 1
+		}
 
-	return 3*pair.left.magnitude() + 2*pair.right.magnitude()
+		return node.parent.level() + 1
+	} else {
+		return -1
+	}
 }
 
-func createSfnPair(line string, parent *sfnPair) sfnPair {
-	var leftNode, rightNode sfnNode
-	newPair := sfnPair{leftNode, rightNode, parent}
+func calcMagnitudePair(node sfnNode) int {
+
+	return 3*node.left.magnitude() + 2*node.right.magnitude()
+}
+
+func createRegular(value int, parent *sfnNode) *sfnNode {
+	return &sfnNode{false, value, nil, nil, parent}
+}
+
+func createSfnPair(line string, parent *sfnNode) *sfnNode {
+	var leftNode, rightNode *sfnNode
+	newPair := &sfnNode{true, -1, nil, nil, parent}
 
 	middleIndex := findMiddleIndex(line)
 	leftPart := line[1:middleIndex]
@@ -43,17 +53,17 @@ func createSfnPair(line string, parent *sfnPair) sfnPair {
 
 	leftNumber, isLeftNumber := strconv.Atoi(leftPart)
 	if isLeftNumber == nil {
-		leftNode = regular(leftNumber)
+		leftNode = createRegular(leftNumber, newPair)
 	} else {
-		leftNode = createSfnPair(leftPart, &newPair)
+		leftNode = createSfnPair(leftPart, newPair)
 	}
 	newPair.left = leftNode
 
 	rightNumber, isRightNumber := strconv.Atoi(rightPart)
 	if isRightNumber == nil {
-		rightNode = regular(rightNumber)
+		rightNode = createRegular(rightNumber, newPair)
 	} else {
-		rightNode = createSfnPair(rightPart, &newPair)
+		rightNode = createSfnPair(rightPart, newPair)
 	}
 	newPair.right = rightNode
 
@@ -93,9 +103,9 @@ func debugMagnitude() {
 	}
 
 	for input, expected := range testCases {
-		sfnPair := createSfnPair(input, nil)
-		println(sfnPair.level())
-		actual := calcMagnitudePair(sfnPair)
+		sfnNode := createSfnPair(input, nil)
+		println(sfnNode.level())
+		actual := calcMagnitudePair(*sfnNode)
 
 		if actual == expected {
 			outcome = "passed"
@@ -106,15 +116,66 @@ func debugMagnitude() {
 	}
 }
 
-func addition(pair1, pair2 sfnPair) sfnPair {
-	newPair := sfnPair{nil, nil, nil}
-	pair1.parent = &newPair
-	pair2.parent = &newPair
-	newPair.left = pair1
-	newPair.right = pair2
-
-	return newPair
-}
+//
+//func addition(pair1, pair2 sfnPair) sfnPair {
+//	newPair := sfnPair{nil, nil, nil}
+//	pair1.parent = &newPair
+//	pair2.parent = &newPair
+//	newPair.left = pair1
+//	newPair.right = pair2
+//
+//	return newPair
+//}
+//
+//func explode(pair *sfnPair) *sfnPair {
+//	return pair
+//}
+//
+//func split(regular sfnRegular) sfnPair {
+//	newPair := sfnPair{nil, nil, regular.parent}
+//	newPair.left = createRegular(int(math.Floor(float64(regular.magnitude())/2.0)), &newPair)
+//	newPair.right = createRegular(int(math.Ceil(float64(regular.magnitude())/2.0)), &newPair)
+//
+//	return newPair
+//}
+//
+//func traverse(pair *sfnPair) bool {
+//	if foo(pair.left, pair) == false {
+//		return false
+//	}
+//	if foo(pair.right, pair) == false {
+//		return false
+//	}
+//
+//	return true
+//}
+//
+//func foo(node sfnNode, pair *sfnPair) bool {
+//	switch t := node.(type) {
+//	case sfnPair:
+//		if t.level() >= 5 {
+//			explode(pair)
+//			return false
+//		} else {
+//			return traverse(pair)
+//		}
+//	case sfnRegular:
+//		if t.magnitude() >= 10 {
+//			node = split(node.(sfnRegular))
+//			return false
+//		}
+//	default:
+//	}
+//
+//	return true
+//}
+//
+//func reduce(pair sfnPair) {
+//	foo := false
+//	for foo == false {
+//		foo = traverse(&pair)
+//	}
+//}
 
 func evalA(lines []string) int {
 
@@ -152,7 +213,7 @@ func main() {
 	eval(filenameDebug1, true)
 	eval(filenameDebug2, true)
 	eval(filename, false)
-	test := addition(createSfnPair("[1,2]", nil), createSfnPair("[[1,2],3]", nil))
-	fmt.Printf("1. main  -- i  %T: &i=%p i=%v\n", test, &test, test)
-	println(calcMagnitudePair(test))
+	//test := addition(createSfnPair("[1,2]", nil), createSfnPair("[[1,2],3]", nil))
+	//fmt.Printf("1. main  -- i  %T: &i=%p i=%v\n", test, &test, test)
+	//println(calcMagnitudePair(test))
 }
