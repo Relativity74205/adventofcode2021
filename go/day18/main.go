@@ -166,13 +166,18 @@ func explode(nodeList []*Node, explodeIndex int) {
 	}
 }
 
-func traverse(nodeList []*Node) bool {
+func traverseNodeList(nodeList []*Node) bool {
 	for i, node := range nodeList {
 		if node.isPair && node.level() > 4 {
+			//fmt.Printf("Exploding %s at pos %d\n", serializeSFN(node), i)
 			explode(nodeList, i)
 			return false
 		}
+	}
+
+	for i, node := range nodeList {
 		if !node.isPair && node.magnitude() >= 10 {
+			//fmt.Printf("Splitting %s at pos %d\n", serializeSFN(node), i)
 			split(nodeList, i)
 			return false
 		}
@@ -181,13 +186,15 @@ func traverse(nodeList []*Node) bool {
 	return true
 }
 
-func traverseOnce(sfn *Node) bool {
+func reduceOnce(sfn *Node) bool {
 	nodeList := getNodeList(sfn, nil)
-	return traverse(nodeList)
+	return traverseNodeList(nodeList)
 }
 
 func reduce(sfn *Node) {
-	for !traverseOnce(sfn) {
+	//fmt.Printf("after addition %s\n", serializeSFN(sfn))
+	for !reduceOnce(sfn) {
+		//fmt.Printf("after one traverseNodeList %s\n", serializeSFN(sfn))
 	}
 }
 
@@ -198,7 +205,7 @@ func evalA(lines []string) int {
 		sfn = addition(sfn, newSFN)
 		reduce(sfn)
 	}
-	println(serializeSFN(sfn))
+	//println(serializeSFN(sfn))
 
 	return sfn.magnitude()
 }
@@ -227,13 +234,12 @@ func main() {
 	day := 18
 	filename := fmt.Sprintf("input%02d.txt", day)
 	filenameDebug1 := fmt.Sprintf("input%02d%v.txt", day, "_debug1")
-	println(filenameDebug1)
 	filenameDebug2 := fmt.Sprintf("input%02d%v.txt", day, "_debug2")
 
 	fmt.Printf("Day %02d \n", day)
 	//debugMagnitude()
 	//debugExplode()
-	debugAdd()
+	//debugAdd()
 	eval(filenameDebug1, true)
 	eval(filenameDebug2, true)
 	eval(filename, false)
