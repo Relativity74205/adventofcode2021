@@ -106,11 +106,11 @@ func serializeSFN(node *Node) string {
 }
 
 func addition(pair1, pair2 *Node) *Node {
-	newPair := &Node{true, -1, pair1, pair2, nil}
+	newPair := &Node{true, -1, copySFN(pair1), copySFN(pair2), nil}
 	newPair.left.parent = newPair
 	newPair.right.parent = newPair
 
-	return newPair
+	return newPair.reduce()
 }
 
 func getNodeList(node *Node, nodeList []*Node) []*Node {
@@ -187,17 +187,46 @@ func reduceOnce(sfn *Node) bool {
 	return traverseNodeList(getNodeList(sfn, nil))
 }
 
-func reduce(sfn *Node) {
-	for !reduceOnce(sfn) {
+func (node *Node) reduce() *Node {
+	for !reduceOnce(node) {
 	}
+	return node
+}
+
+func copySFN(node *Node) *Node {
+	var newNode *Node
+	if node.isPair {
+		newNode = &Node{
+			true,
+			-1,
+			copySFN(node.left),
+			copySFN(node.right),
+			nil,
+		}
+		newNode.left.parent = newNode
+		newNode.right.parent = newNode
+	} else {
+		newNode = &Node{
+			false,
+			node.value,
+			nil,
+			nil,
+			nil,
+		}
+	}
+
+	return newNode
 }
 
 func evalA(lines []string) int {
-	sfn := deserializeSFN(lines[0])
-	for _, line := range lines[1:] {
-		newSFN := deserializeSFN(line)
-		sfn = addition(sfn, newSFN)
-		reduce(sfn)
+	var sfnList []*Node
+	for _, line := range lines {
+		sfnList = append(sfnList, deserializeSFN(line))
+	}
+
+	sfn := sfnList[0]
+	for _, sfnNew := range sfnList[1:] {
+		sfn = addition(sfn, sfnNew)
 	}
 
 	return sfn.magnitude()
@@ -205,22 +234,15 @@ func evalA(lines []string) int {
 
 func evalB(lines []string) int {
 	var maxMagnitude int
-	// https://github.com/jinzhu/copier
 
-	//var sfnList []*Node
-	//for _, line := range lines {
-	//	sfn := deserializeSFN(line)
-	//	sfnList = append(sfnList, sfn)
-	//
-	//}
+	var sfnList []*Node
+	for _, line := range lines {
+		sfnList = append(sfnList, deserializeSFN(line))
+	}
 
-	for _, lineA := range lines {
-		for _, lineB := range lines {
-			sfnA := deserializeSFN(lineA)
-			sfnB := deserializeSFN(lineB)
-
+	for _, sfnA := range sfnList {
+		for _, sfnB := range sfnList {
 			sfn := addition(sfnA, sfnB)
-			reduce(sfn)
 			maxMagnitude = util.MaxInt(maxMagnitude, sfn.magnitude())
 		}
 	}
