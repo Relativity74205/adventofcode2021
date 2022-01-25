@@ -17,7 +17,7 @@ func debugMagnitude() {
 	}
 
 	for input, expected := range testCases {
-		sfn := createSFN(input, nil)
+		sfn := deserializeSFN(input)
 		actual := sfn.magnitude()
 
 		if actual == expected {
@@ -40,7 +40,7 @@ func debugExplode() {
 	}
 
 	for input, expected := range testCases {
-		sfn := createSFN(input, nil)
+		sfn := deserializeSFN(input)
 		reduceOnce(sfn)
 		actual := serializeSFN(sfn)
 
@@ -49,7 +49,7 @@ func debugExplode() {
 		} else {
 			outcome = "FAILED"
 		}
-		fmt.Printf("Magnitude debug: outcome: %s; expected: %d, actual: %d, input: %s \n", outcome, expected, actual, input)
+		fmt.Printf("Magnitude debug: outcome: %s; expected: %s, actual: %s, input: %s \n", outcome, expected, actual, input)
 	}
 }
 
@@ -65,7 +65,7 @@ func debugAdd() {
 	for input, expected := range testCases {
 		var nodes []*Node
 		for _, s := range strings.Split(input, ";") {
-			nodes = append(nodes, createSFN(s, nil))
+			nodes = append(nodes, deserializeSFN(s))
 		}
 		node := nodes[0]
 		for _, newNode := range nodes[1:] {
@@ -78,7 +78,7 @@ func debugAdd() {
 		} else {
 			outcome = "FAILED"
 		}
-		fmt.Printf("Add debug: outcome: %s; expected: %d, actual: %d; input: %s\n", outcome, expected, actual, input)
+		fmt.Printf("Add debug: outcome: %s; expected: %s, actual: %s; input: %s\n", outcome, expected, actual, input)
 	}
 }
 

@@ -35,19 +35,19 @@ func (node Node) level() int {
 	}
 }
 
-func createNode(nodeString string) *Node {
+func createNodeFromString(nodeString string) *Node {
 	var node *Node
 	value, isNumber := strconv.Atoi(nodeString)
 	if isNumber == nil {
 		node = &Node{false, value, nil, nil, nil}
 	} else {
-		node = createSFN(nodeString, nil)
+		node = deserializeSFN(nodeString)
 	}
 
 	return node
 }
 
-func createSFN(line string, parent *Node) *Node {
+func deserializeSFN(line string) *Node {
 	middleIndex := findMiddleIndex(line)
 	leftPart := line[1:middleIndex]
 	rightPart := line[middleIndex+1 : len(line)-1]
@@ -55,9 +55,9 @@ func createSFN(line string, parent *Node) *Node {
 	newPair := &Node{
 		true,
 		-1,
-		createNode(leftPart),
-		createNode(rightPart),
-		parent,
+		createNodeFromString(leftPart),
+		createNodeFromString(rightPart),
+		nil,
 	}
 	newPair.left.parent = newPair
 	newPair.right.parent = newPair
@@ -87,21 +87,22 @@ func findMiddleIndex(line string) int {
 }
 
 func serializeSFN(node *Node) string {
-	return serializeSFNRec(node, "")
-}
+	var serializeRecursive func(node *Node, s string) string
 
-func serializeSFNRec(node *Node, s string) string {
-	if node.isPair {
-		var sNew string
-		sNew += "["
-		sNew = serializeSFNRec(node.left, sNew)
-		sNew += ","
-		sNew = serializeSFNRec(node.right, sNew)
-		sNew += "]"
-		return s + sNew
-	} else {
-		return s + strconv.Itoa(node.value)
+	serializeRecursive = func(node *Node, s string) string {
+		if node.isPair {
+			var sNew string
+			sNew += "["
+			sNew = serializeRecursive(node.left, sNew)
+			sNew += ","
+			sNew = serializeRecursive(node.right, sNew)
+			sNew += "]"
+			return s + sNew
+		} else {
+			return s + strconv.Itoa(node.magnitude())
+		}
 	}
+	return serializeRecursive(node, "")
 }
 
 func addition(pair1, pair2 *Node) *Node {
@@ -121,6 +122,14 @@ func getNodeList(node *Node, nodeList []*Node) []*Node {
 	return nodeList
 }
 
+func setParentNodePointer(node *Node, newNode *Node) {
+	if node.parent.left == node {
+		node.parent.left = newNode
+	} else {
+		node.parent.right = newNode
+	}
+}
+
 func split(nodeList []*Node, splitIndex int) {
 	node := nodeList[splitIndex]
 	newNode := &Node{
@@ -133,34 +142,24 @@ func split(nodeList []*Node, splitIndex int) {
 	newNode.left.parent = newNode
 	newNode.right.parent = newNode
 
-	if node.parent.left == node {
-		node.parent.left = newNode
-	} else {
-		node.parent.right = newNode
-	}
+	setParentNodePointer(node, newNode)
 }
 
 func explode(nodeList []*Node, explodeIndex int) {
 	node := nodeList[explodeIndex]
 
-	valLeft := node.left.value
-	valRight := node.right.value
 	newNode := &Node{false, 0, nil, nil, node.parent}
-	if node.parent.left == node {
-		node.parent.left = newNode
-	} else {
-		node.parent.right = newNode
-	}
+	setParentNodePointer(node, newNode)
 
 	for i := explodeIndex - 1; i >= 0; i-- {
 		if !nodeList[i].isPair {
-			nodeList[i].value += valLeft
+			nodeList[i].value += node.left.magnitude()
 			break
 		}
 	}
 	for i := explodeIndex + 3; i <= len(nodeList)-1; i++ {
 		if !nodeList[i].isPair {
-			nodeList[i].value += valRight
+			nodeList[i].value += node.right.magnitude()
 			break
 		}
 	}
@@ -169,7 +168,6 @@ func explode(nodeList []*Node, explodeIndex int) {
 func traverseNodeList(nodeList []*Node) bool {
 	for i, node := range nodeList {
 		if node.isPair && node.level() > 4 {
-			//fmt.Printf("Exploding %s at pos %d\n", serializeSFN(node), i)
 			explode(nodeList, i)
 			return false
 		}
@@ -177,7 +175,6 @@ func traverseNodeList(nodeList []*Node) bool {
 
 	for i, node := range nodeList {
 		if !node.isPair && node.magnitude() >= 10 {
-			//fmt.Printf("Splitting %s at pos %d\n", serializeSFN(node), i)
 			split(nodeList, i)
 			return false
 		}
@@ -187,32 +184,48 @@ func traverseNodeList(nodeList []*Node) bool {
 }
 
 func reduceOnce(sfn *Node) bool {
-	nodeList := getNodeList(sfn, nil)
-	return traverseNodeList(nodeList)
+	return traverseNodeList(getNodeList(sfn, nil))
 }
 
 func reduce(sfn *Node) {
-	//fmt.Printf("after addition %s\n", serializeSFN(sfn))
 	for !reduceOnce(sfn) {
-		//fmt.Printf("after one traverseNodeList %s\n", serializeSFN(sfn))
 	}
 }
 
 func evalA(lines []string) int {
-	sfn := createSFN(lines[0], nil)
+	sfn := deserializeSFN(lines[0])
 	for _, line := range lines[1:] {
-		newSFN := createSFN(line, nil)
+		newSFN := deserializeSFN(line)
 		sfn = addition(sfn, newSFN)
 		reduce(sfn)
 	}
-	//println(serializeSFN(sfn))
 
 	return sfn.magnitude()
 }
 
 func evalB(lines []string) int {
+	var maxMagnitude int
+	// https://github.com/jinzhu/copier
 
-	return 0
+	//var sfnList []*Node
+	//for _, line := range lines {
+	//	sfn := deserializeSFN(line)
+	//	sfnList = append(sfnList, sfn)
+	//
+	//}
+
+	for _, lineA := range lines {
+		for _, lineB := range lines {
+			sfnA := deserializeSFN(lineA)
+			sfnB := deserializeSFN(lineB)
+
+			sfn := addition(sfnA, sfnB)
+			reduce(sfn)
+			maxMagnitude = util.MaxInt(maxMagnitude, sfn.magnitude())
+		}
+	}
+
+	return maxMagnitude
 }
 
 func eval(filename string, debug bool) {
