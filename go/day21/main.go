@@ -17,8 +17,7 @@ func rollDeterministic() func() int {
 }
 
 func nextPos(currentPos, diceRoll int) int {
-	result := (currentPos + diceRoll) % 10
-	if result == 0 {
+	if result := (currentPos + diceRoll) % 10; result == 0 {
 		return 10
 	} else {
 		return result
@@ -55,15 +54,16 @@ type State struct {
 }
 
 func findLowestState(states map[State]int) (State, int) {
+	// probably the map should be replaced by a priority queue/min heap to optimize the run time
 	var lowestState State
 	minScore := 22
-	for state, count := range states {
+	for state := range states {
 		if state.turnA && state.scoreA < minScore {
 			lowestState = state
-			minScore = count
+			minScore = state.scoreA
 		} else if !state.turnA && state.scoreB < minScore {
 			lowestState = state
-			minScore = count
+			minScore = state.scoreB
 		}
 	}
 
@@ -99,7 +99,7 @@ func evalB(startingPositions []int) int {
 				}
 			}
 			newState := State{scoreA, posA, scoreB, posB, !state.turnA}
-			states[newState] *= diceRollCount * stateCount
+			states[newState] += diceRollCount * stateCount
 		}
 	}
 
