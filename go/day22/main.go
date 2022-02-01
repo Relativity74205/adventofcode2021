@@ -54,12 +54,22 @@ func intersectDimension(bounds1 Bounds, bounds2 Bounds) (Bounds, error) {
 	}
 }
 
-func intersectCuboid(oldCuboid Cuboid, newCuboid Cuboid, sign int) (Cuboid, error) {
+func intersectCuboid(oldCuboid Cuboid, newCuboid Cuboid) (Cuboid, error) {
 	xBounds, xIntersect := intersectDimension(oldCuboid.x, newCuboid.x)
 	yBounds, yIntersect := intersectDimension(oldCuboid.y, newCuboid.y)
 	zBounds, zIntersect := intersectDimension(oldCuboid.z, newCuboid.z)
 	if xIntersect == nil && yIntersect == nil && zIntersect == nil {
-		return Cuboid{-1 * sign, xBounds, yBounds, zBounds}, nil
+		var sign int
+		if oldCuboid.sign == 1 && newCuboid.sign == 1 {
+			sign = -1
+		} else if oldCuboid.sign == 1 && newCuboid.sign == 0 {
+			sign = -1
+		} else if oldCuboid.sign == -1 && newCuboid.sign == 1 {
+			sign = 1
+		} else if oldCuboid.sign == -1 && newCuboid.sign == 0 {
+			return Cuboid{}, errors.New("NoIntersection")
+		}
+		return Cuboid{sign, xBounds, yBounds, zBounds}, nil
 	} else {
 		return Cuboid{}, errors.New("NoIntersection")
 	}
@@ -72,17 +82,19 @@ func addOperation(newOperation Operation, cuboids []Cuboid) []Cuboid {
 	if newOperation.opType == "on" {
 		sign = 1
 	} else {
-		sign = -1
+		sign = 0
 	}
 	newCuboid := Cuboid{sign, newOperation.x, newOperation.y, newOperation.z}
 
 	for _, cuboid := range cuboids {
-		extraCuboid, hasIntersection := intersectCuboid(cuboid, newCuboid, sign)
+		extraCuboid, hasIntersection := intersectCuboid(cuboid, newCuboid)
 		if hasIntersection == nil {
 			newCuboids = append(newCuboids, extraCuboid)
 		}
 	}
-	newCuboids = append(newCuboids, newCuboid)
+	if sign == 1 {
+		newCuboids = append(newCuboids, newCuboid)
+	}
 
 	return newCuboids
 }
